@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ben Finance</title>
+    <style>
+        :root {
+            --primary-blue: #1a73e8;
+            --dark-blue: #0d47a1;
+            --light-bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-main: #333;
+            --income: #2ecc71;
+            --expense: #e74c3c;
+            --support-heart: #e91e63;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--light-bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+        .hidden { display: none !important; }
+
+        /* Estilo Telas de Login/Cadastro */
+        .auth-container {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            margin-top: 50px;
+            text-align: center;
+        }
+        .auth-container h2 { color: var(--dark-blue); margin-bottom: 20px; }
+        .auth-container input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #e1e8ef; border-radius: 8px; outline: none; }
+        .auth-container button { width: 100%; padding: 12px; background: var(--primary-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .auth-container p { margin-top: 15px; font-size: 0.9rem; color: #666; cursor: pointer; }
+
+        /* App Layout */
+        .app-container { width: 100%; max-width: 900px; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        header h1 { color: var(--dark-blue); letter-spacing: -1px; }
+        header h1 span { color: var(--primary-blue); }
+
+        /* Área de Apoio ao Projeto */
+        .support-banner {
+            background: linear-gradient(135deg, #0d47a1 0%, #1a73e8 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+        }
+        .support-content h3 { margin-bottom: 5px; }
+        .support-content p { font-size: 0.9rem; opacity: 0.9; }
+        .btn-support { 
+            background: var(--support-heart); 
+            color: white; 
+            padding: 12px 20px; 
+            border-radius: 10px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            transition: transform 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .btn-support:hover { transform: scale(1.05); }
+
+        /* Dashboard e Forms */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid transparent; }
+        .card.balance { border-left-color: var(--primary-blue); }
+        .card.inflow { border-left-color: var(--income); }
+        .card.outflow { border-left-color: var(--expense); }
+        .card h3 { font-size: 0.85rem; color: #777; text-transform: uppercase; margin-bottom: 5px; }
+        .card p { font-size: 1.6rem; font-weight: bold; }
+
+        .transaction-form { background: white; padding: 25px; border-radius: 15px; display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .transaction-form input, .transaction-form select { flex: 1; padding: 12px; border: 1px solid #dee2e6; border-radius: 8px; outline: none; }
+        .btn-add { background: var(--dark-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        .history { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; color: var(--dark-blue); border-bottom: 2px solid var(--light-bg); }
+        td { padding: 12px; border-bottom: 1px solid #f8f9fa; }
+
+        @media (max-width: 600px) {
+            .support-banner { flex-direction: column; text-align: center; gap: 15px; }
+            .transaction-form { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginPage" class="auth-container">
+        <h2>Ben Finance</h2>
+        <input type="text" id="userLogin" placeholder="Usuário">
+        <input type="password" id="passLogin" placeholder="Senha">
+        <button onclick="handleLogin()">Entrar</button>
+        <p onclick="toggleAuth(true)">Primeira vez? Crie sua conta</p>
+    </div>
+
+    <div id="registerPage" class="auth-container hidden">
+        <h2>Cadastrar no Ben Finance</h2>
+        <input type="text" id="userReg" placeholder="Novo usuário">
+        <input type="password" id="passReg" placeholder="Senha">
+        <button onclick="handleRegister()">Criar Conta</button>
+        <p onclick="toggleAuth(false)">Já tem conta? Entrar</p>
+    </div>
+
+    <div id="appPage" class="app-container hidden">
+        <header>
+            <div>
+                <h1>Ben <span>Finance</span></h1>
+                <small id="userNameDisplay"></small>
+            </div>
+            <button onclick="logout()" style="background:none; border:none; color:#e74c3c; cursor:pointer; font-weight:bold;">Sair</button>
+        </header>
+
+        <div class="support-banner">
+            <div class="support-content">
+                <h3>Apoie este projeto! ❤️</h3>
+                <p>Gostou do Ben Finance? Ajude a manter o app online e gratuito.</p>
+            </div>
+            <a href="https://mpago.la/2xQibs1" target="_blank" class="btn-support">Apoiar via Mercado Pago</a>
+        </div>
+
+        <div class="dashboard">
+            <div class="card balance"><h3>Saldo Atual</h3><p id="totalBalance" style="color: var(--primary-blue);">R$ 0,00</p></div>
+            <div class="card inflow"><h3>Entradas</h3><p id="totalInflow" style="color: var(--income);">R$ 0,00</p></div>
+            <div class="card outflow"><h3>Saídas</h3><p id="totalOutflow" style="color: var(--expense);">R$ 0,00</p></div>
+        </div>
+
+        <div class="transaction-form">
+            <input type="text" id="desc" placeholder="Ex: Salário, Almoço...">
+            <input type="number" id="amount" placeholder="Valor R$">
+            <select id="type">
+                <option value="inflow">Entrada</option>
+                <option value="outflow">Saída</option>
+            </select>
+            <button class="btn-add" onclick="addTransaction()">Adicionar</button>
+        </div>
+
+        <div class="history">
+            <table>
+                <thead>
+                    <tr><th>Descrição</th><th>Valor</th><th>Tipo</th><th>Remover</th></tr>
+                </thead>
+                <tbody id="transactionList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        function toggleAuth(isReg) {
+            document.getElementById('loginPage').classList.toggle('hidden', isReg);
+            document.getElementById('registerPage').classList.toggle('hidden', !isReg);
+        }
+
+        function handleRegister() {
+            const u = document.getElementById('userReg').value;
+            const p = document.getElementById('passReg').value;
+            if(!u || !p) return alert("Preencha os campos!");
+
+            let users = JSON.parse(localStorage.getItem('users_ben')) || {};
+            if(users[u]) return alert("Usuário já existe!");
+
+            users[u] = { password: p, transactions: [] };
+            localStorage.setItem('users_ben', JSON.stringify(users));
+            alert("Conta criada! Pode fazer o login.");
+            toggleAuth(false);
+        }
+
+        function handleLogin() {
+            const u = document.getElementById('userLogin').value;
+            const p = document.getElementById('passLogin').value;
+            let users = JSON.parse(localStorage.getItem('users_ben')) || {};
+
+            if(users[u] && users[u].password === p) {
+                currentUser = u;
+                showApp();
+            } else {
+                alert("Usuário ou senha incorretos.");
+            }
+        }
+
+        function showApp() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            document.getElementById('userNameDisplay').innerText = `Logado como: ${currentUser}`;
+            updateUI();
+        }
+
+        function addTransaction() {
+            const desc = document.getElementById('desc').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const type = document.getElementById('type').value;
+
+            if(!desc || isNaN(amount)) return alert("Preencha os dados corretamente.");
+
+            let users = JSON.parse(localStorage.getItem('users_ben'));
+            users[currentUser].transactions.push({ desc, amount, type, id: Date.now() });
+            localStorage.setItem('users_ben', JSON.stringify(users));
+            
+            document.getElementById('desc').value = '';
+            document.getElementById('amount').value = '';
+            updateUI();
+        }
+
+        function deleteTransaction(id) {
+            let users = JSON.parse(localStorage.getItem('users_ben'));
+            users[currentUser].transactions = users[currentUser].transactions.filter(t => t.id !== id);
+            localStorage.setItem('users_ben', JSON.stringify(users));
+            updateUI();
+        }
+
+        function updateUI() {
+            let users = JSON.parse(localStorage.getItem('users_ben'));
+            const data = users[currentUser].transactions;
+            const list = document.getElementById('transactionList');
+            list.innerHTML = '';
+
+            let inVal = 0, outVal = 0;
+
+            data.forEach(t => {
+                if(t.type === 'inflow') inVal += t.amount;
+                else outVal += t.amount;
+
+                list.innerHTML += `
+                    <tr>
+                        <td>${t.desc}</td>
+                        <td style="color: ${t.type === 'inflow' ? 'var(--income)' : 'var(--expense)'}">R$ ${t.amount.toFixed(2)}</td>
+                        <td>${t.type === 'inflow' ? 'Entrada' : 'Saída'}</td>
+                        <td><button onclick="deleteTransaction(${t.id})" style="color:red; background:none; border:none; cursor:pointer;">✖</button></td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('totalInflow').innerText = `R$ ${inVal.toFixed(2)}`;
+            document.getElementById('totalOutflow').innerText = `R$ ${outVal.toFixed(2)}`;
+            document.getElementById('totalBalance').innerText = `R$ ${(inVal - outVal).toFixed(2)}`;
+        }
+
+        function logout() { location.reload(); }
+    </script>
+</body>
+</html>
